@@ -1,0 +1,21 @@
+grammar;
+
+pub Structure: () = {
+    Block,
+};
+
+Block: () = {
+    BlockKeyword Name "{" Type "=" TypeName "}",
+};
+
+BlockKeyword: () = {
+    Variable,
+};
+
+TypeName: String = {
+    "string" => <>.to_string(),
+}
+
+Variable: String = "variable" => <>.to_string();
+Type:     String = "type" => <>.to_string();
+Name:     String = r#""[a-zA-Z]+""# => <>.to_string();
