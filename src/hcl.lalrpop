@@ -1,21 +1,165 @@
+use std::str::FromStr;
+
 grammar;
 
-pub Structure: () = {
+pub Hcl: () = {
+    Body,
+};
+
+Body: () = {
+    BlockList,
+    AttributeList,
+};
+
+BlockList: () = {
+    BlockList Block,
     Block,
 };
 
+AttributeList: () = {
+    AttributeList Attribute,
+    Attribute,
+};
+
+Attribute: () = {
+    Identifier "=" Expression,
+};
+
 Block: () = {
-    BlockKeyword Name "{" Type "=" TypeName "}",
+    Identifier IdentifierList? "{" Body "}",
 };
 
-BlockKeyword: () = {
-    Variable,
+IdentifierList: () = {
+    IdentifierList Identifiers,
+    Identifiers,
 };
 
-TypeName: String = {
-    "string" => <>.to_string(),
-}
+Identifiers: () = {
+    Identifier,
+    QuotedIdentifier,
+};
 
-Variable: String = "variable" => <>.to_string();
-Type:     String = "type" => <>.to_string();
-Name:     String = r#""[a-zA-Z]+""# => <>.to_string();
+Expression: () = {
+    ExprTerm,
+    // Operation,
+    // Conditional,
+};
+
+// ExprTerm = (
+//     LiteralValue |
+//     CollectionValue |
+//     TemplateExpr |
+//     VariableExpr |
+//     FunctionCall |
+//     ForExpr |
+//     ExprTerm Index |
+//     ExprTerm GetAttr |
+//     ExprTerm Splat |
+//     "(" Expression ")"
+// );
+
+ExprTerm: () = {
+    LiteralValue,
+    CollectionValue,
+    // TemplateExpr,  // TODO: it can't parse newlines for some reason
+    VariableExpr,
+    FunctionCall,
+    ForExpr,
+    ExprTerm Splat,
+    // "(" Expression ")", // TODO
+};
+
+Splat: () = {
+    "." "*",
+    "." Identifier,     // GetAttr
+    "[" "*" "]",
+    "[" Expression "]", // Index
+};
+
+FunctionCall: () = {
+    Identifier "(" Arguments? ")"
+};
+
+Arguments: () = {
+    ExpressionCommaList
+};
+
+ForExpr: () = {
+    ForTupleExpr,
+    ForObjectExpr,
+};
+
+ForTupleExpr: () = {
+    "[" ForIntro Expression ForCond? "]"
+};
+
+ForObjectExpr: () = {
+    "{" ForIntro Expression "=>" Expression "..."? ForCond? "}"
+};
+
+ForIntro: () = {
+    "for" IdentifierCommaList "in" Expression ":"
+};
+
+ForCond: () = {
+    "if" Expression
+};
+
+IdentifierCommaList: () = {
+    Identifier,
+    Identifier "," IdentifierCommaList
+};
+
+VariableExpr: () = {
+    Identifiers,
+};
+
+TemplateExpr: () = {
+    // TODO: quotedTemplate (a double-quoted string with escaped quotes)
+    Heredoc Identifier "\n" IdentifierList "\n"
+};
+
+LiteralValue:() = {
+    Number,
+    "true",
+    "false",
+    "null",
+};
+
+CollectionValue: () = {
+    Tuple,
+    Object,
+};
+
+Tuple: () = {
+    "[" ExpressionCommaList? "]",
+};
+
+ExpressionCommaList: () = {
+    ExpressionParen,
+    ExpressionParen "," ExpressionCommaList
+};
+
+ExpressionParen: () = {
+    "(" ExpressionParen ")",
+    Expression,
+};
+
+Object: () = {
+    "{" ObjectCommaList? "}",
+};
+
+ObjectCommaList: () = {
+    ObjectParen,
+    ObjectParen "," ObjectCommaList,
+};
+
+ObjectParen: () = {
+    "(" ObjectParen ")",
+    Expression "=" Expression,
+};
+
+QuotedIdentifier: String = r#""[a-zA-Z]+""# => <>.to_string();
+Identifier: String = r#"[a-zA-Z]+"# => <>.to_string();
+Number: i32 = r"[0-9]+" => i32::from_str(<>).unwrap();
+Heredoc: String = r"<<-?" => <>.to_string();
