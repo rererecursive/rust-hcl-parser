@@ -92,6 +92,17 @@ variable hello "ok" {
     assert!(hcl::HclParser::new().parse(text).is_ok());
 }
 
+#[test]
+fn test_operation_conditional() {
+    let text = r#"
+variable hello "ok" {
+  once = true ? one : two
+  twice = (1 == 0) ? fn(1) : fn(0)
+}
+"#;
+    assert!(hcl::HclParser::new().parse(text).is_ok());
+}
+
 fn main() {
     let text = r#"
 variable hello "ok" {

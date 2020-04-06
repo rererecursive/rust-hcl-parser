@@ -41,7 +41,11 @@ Identifiers: () = {
 
 Expression: () = {
     Operation,
-    // Conditional,
+    Conditional,
+};
+
+Conditional: () = {
+    ExprTerm "?" ExprTerm ":" ExprTerm,
 };
 
 // Precedence: highest to lowest.
