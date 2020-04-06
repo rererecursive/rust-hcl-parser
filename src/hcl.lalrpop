@@ -42,6 +42,12 @@ Identifiers: () = {
 Expression: () = {
     Operation,
     Conditional,
+    TemplateInterpolation,
+};
+
+TemplateInterpolation: () = {
+    "${" ExprTerm "}",
+    "${" "~" ExprTerm "~" "}",
 };
 
 Conditional: () = {

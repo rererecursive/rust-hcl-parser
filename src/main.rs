@@ -93,11 +93,23 @@ variable hello "ok" {
 }
 
 #[test]
-fn test_operation_conditional() {
+fn test_conditional() {
     let text = r#"
 variable hello "ok" {
   once = true ? one : two
   twice = (1 == 0) ? fn(1) : fn(0)
+}
+"#;
+    assert!(hcl::HclParser::new().parse(text).is_ok());
+}
+
+#[test]
+fn test_template_interpolation() {
+    let text = r#"
+variable hello "ok" {
+  once = ${var.hello}
+  twice = ${some.object.attribute}
+  thrice = ${~ some.object.attribute ~}
 }
 "#;
     assert!(hcl::HclParser::new().parse(text).is_ok());
