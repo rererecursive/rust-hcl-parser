@@ -1,6 +1,7 @@
 #[macro_use] extern crate lalrpop_util;
 
 lalrpop_mod!(pub hcl); // synthesized by LALRPOP
+pub mod ast;
 
 #[test]
 fn test_single_attribute() {
@@ -115,12 +116,31 @@ variable hello "ok" {
     assert!(hcl::HclParser::new().parse(text).is_ok());
 }
 
+#[test]
+fn test_simple() {
+    let text = r#"
+variable "ok" {
+  hi = yes
+}
+"#;
+    assert!(hcl::HclParser::new().parse(text).is_ok());
+}
+
+
 fn main() {
     let text = r#"
 variable hello "ok" {
   once = rotate()
   twice = rotate(2)
   thrice = rotate(3, {apple = green}, translate(1))
+}
+
+data hello "no" {
+  frice = "yum"
+}
+
+ident hello "no" {
+  frice = "yum"
 }
 "#;
     hcl::HclParser::new().parse(text);

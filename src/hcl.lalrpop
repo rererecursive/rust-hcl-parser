@@ -1,4 +1,5 @@
 use std::str::FromStr;
+use crate::ast;
 
 grammar;
 
@@ -7,13 +8,18 @@ pub Hcl: () = {
 };
 
 Body: () = {
-    BlockList,
+    <b:BlockList> => { println!("Blocklist: {:#?}", b) },
     AttributeList,
 };
 
-BlockList: () = {
-    BlockList Block,
-    Block,
+BlockList: Vec<ast::Block> = {
+    <mut bl:BlockList> <b:Block> => {
+        bl.push(b);
+        bl
+    },
+    <b:Block> => {
+        vec![b]
+    },
 };
 
 AttributeList: () = {
@@ -25,8 +31,12 @@ Attribute: () = {
     Identifier "=" Expression,
 };
 
-Block: () = {
-    Identifier IdentifierList? "{" Body "}",
+Block: ast::Block = {
+    <i:Identifiers+> "{" Body "}" => {
+        ast::Block {
+            block_identifiers: i
+        }
+    },
 };
 
 IdentifierList: () = {
@@ -34,7 +44,7 @@ IdentifierList: () = {
     Identifiers,
 };
 
-Identifiers: () = {
+Identifiers: String = {
     Identifier,
     QuotedIdentifier,
 };
