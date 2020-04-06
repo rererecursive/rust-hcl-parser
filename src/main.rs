@@ -59,6 +59,47 @@ variable hello "ok" {
     assert!(hcl::HclParser::new().parse(text).is_ok());
 }
 
+#[test]
+fn test_for_expr() {
+    let text = r#"
+variable hello "ok" {
+  once = [for a in items(): a.key]
+  twice = [for a,b in items(): a.key if hasvalue(a)]
+}
+"#;
+    assert!(hcl::HclParser::new().parse(text).is_ok());
+}
+
+#[test]
+fn test_operation_binary() {
+    let text = r#"
+variable hello "ok" {
+  once = one || two
+  twice = one && (two == three) >= four
+}
+"#;
+    assert!(hcl::HclParser::new().parse(text).is_ok());
+}
+
+#[test]
+fn test_operation_unary() {
+    let text = r#"
+variable hello "ok" {
+  once = -1
+  twice = !stopped("now")
+}
+"#;
+    assert!(hcl::HclParser::new().parse(text).is_ok());
+}
+
 fn main() {
+    let text = r#"
+variable hello "ok" {
+  once = rotate()
+  twice = rotate(2)
+  thrice = rotate(3, {apple = green}, translate(1))
+}
+"#;
+    hcl::HclParser::new().parse(text);
     println!("Hello, world!");
 }

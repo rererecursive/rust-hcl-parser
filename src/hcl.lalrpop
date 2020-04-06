@@ -40,23 +40,71 @@ Identifiers: () = {
 };
 
 Expression: () = {
-    ExprTerm,
-    // Operation,
+    Operation,
     // Conditional,
 };
 
-// ExprTerm = (
-//     LiteralValue |
-//     CollectionValue |
-//     TemplateExpr |
-//     VariableExpr |
-//     FunctionCall |
-//     ForExpr |
-//     ExprTerm Index |
-//     ExprTerm GetAttr |
-//     ExprTerm Splat |
-//     "(" Expression ")"
-// );
+// Precedence: highest to lowest.
+// Level    Operators
+//   6      * / %
+//   5      + -
+//   4      > >= < <=
+//   3      == !=
+//   2      &&
+//   1      ||
+Operation: () = {
+    OperationUnary,
+    OperationBinary,
+};
+
+OperationUnary: () = {
+    "-" ExprTerm,
+    "!" ExprTerm,
+};
+
+OperationBinary: () = {
+    OperationOr,
+};
+
+// Precedence is created by adding nonterminals with higher precedence to the production rules.
+// "Itself plus its child"
+// '||' has the lowest precedence.
+OperationOr: () = {
+    OperationOr "||" OperationAnd,
+    OperationAnd,
+};
+
+OperationAnd: () = {
+    OperationAnd "&&" OperationEq,
+    OperationEq,
+};
+
+OperationEq: () = {
+    OperationEq "==" OperationComp,
+    OperationEq "!=" OperationComp,
+    OperationComp,
+};
+
+OperationComp: () = {
+    OperationComp ">" OperationAddSub,
+    OperationComp "<" OperationAddSub,
+    OperationComp ">=" OperationAddSub,
+    OperationComp "<=" OperationAddSub,
+    OperationAddSub,
+};
+
+OperationAddSub:() = {
+    OperationAddSub "+" OperationMulDiv,
+    OperationAddSub "-" OperationMulDiv,
+    OperationMulDiv,
+};
+
+OperationMulDiv: () = {
+    OperationMulDiv "*" ExprTerm,
+    OperationMulDiv "/" ExprTerm,
+    OperationMulDiv "%" ExprTerm,
+    ExprTerm,
+};
 
 ExprTerm: () = {
     LiteralValue,
@@ -66,8 +114,40 @@ ExprTerm: () = {
     FunctionCall,
     ForExpr,
     ExprTerm Splat,
-    // "(" Expression ")", // TODO
+    "(" Expression ")",
 };
+
+LiteralValue:() = {
+    Number,
+    "true",
+    "false",
+    "null",
+};
+
+CollectionValue: () = {
+    Tuple,
+    Object,
+};
+
+Tuple: () = {
+    "[" ExpressionCommaList? "]",
+};
+
+ExpressionCommaList: () = {
+
+    Expression "," ExpressionCommaList,
+    Expression,
+};
+
+Object: () = {
+    "{" ObjectCommaList? "}",
+};
+
+ObjectCommaList: () = {
+    Expression "=" Expression,
+    Expression "=" Expression "," ObjectCommaList
+};
+
 
 Splat: () = {
     "." "*",
@@ -117,46 +197,6 @@ VariableExpr: () = {
 TemplateExpr: () = {
     // TODO: quotedTemplate (a double-quoted string with escaped quotes)
     Heredoc Identifier "\n" IdentifierList "\n"
-};
-
-LiteralValue:() = {
-    Number,
-    "true",
-    "false",
-    "null",
-};
-
-CollectionValue: () = {
-    Tuple,
-    Object,
-};
-
-Tuple: () = {
-    "[" ExpressionCommaList? "]",
-};
-
-ExpressionCommaList: () = {
-    ExpressionParen,
-    ExpressionParen "," ExpressionCommaList
-};
-
-ExpressionParen: () = {
-    "(" ExpressionParen ")",
-    Expression,
-};
-
-Object: () = {
-    "{" ObjectCommaList? "}",
-};
-
-ObjectCommaList: () = {
-    ObjectParen,
-    ObjectParen "," ObjectCommaList,
-};
-
-ObjectParen: () = {
-    "(" ObjectParen ")",
-    Expression "=" Expression,
 };
 
 QuotedIdentifier: String = r#""[a-zA-Z]+""# => <>.to_string();
