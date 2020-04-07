@@ -40,6 +40,10 @@ pub enum TermType {
     },
 
     Null,
+
+    Number {
+        value: u32,
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
