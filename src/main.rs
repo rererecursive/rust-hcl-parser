@@ -173,6 +173,17 @@ key = value
     assert!(hcl::HclParser::new().parse(text).is_ok());
 }
 
+#[test]
+fn test_single_chars() {
+    let text = r#"
+a "b" {
+    _c = d
+}
+e = f_
+"#;
+    assert!(hcl::HclParser::new().parse(text).is_ok());
+}
+
 /****************************** MAIN ******************************/
 
 fn main() {
