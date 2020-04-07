@@ -3,8 +3,12 @@ use crate::ast;
 
 grammar;
 
-pub Hcl: () = {
-    Body* => println!("Body: {:#?}", <>),
+pub Hcl: ast::Hcl = {
+    <b:Body*> => {
+        ast::Hcl {
+            statements: b
+        }
+    }
 };
 
 Body: ast::Statement = {
@@ -13,10 +17,13 @@ Body: ast::Statement = {
 };
 
 Attribute: ast::Statement = {
-    <i:Identifier> "=" Expression => {
+    <i:Identifier> "=" <e:Expression> => {
         ast::Statement {
             node: ast::StatementType::Attribute {
-                identifier: i
+                identifier: i,
+                expression: ast::Expression {
+                    node: e,
+                }
             }
         }
     }
@@ -44,29 +51,24 @@ Block: ast::Statement = {
     },
 };
 
-IdentifierList: () = {
-    IdentifierList Identifiers,
-    Identifiers,
-};
-
 Identifiers: String = {
     Identifier,
     QuotedIdentifier,
 };
 
-Expression: () = {
-    Operation,
-    Conditional,
-    TemplateInterpolation,
+Expression: ast::ExpressionType = {
+    Operation => ast::ExpressionType::Null {},
+    Conditional => ast::ExpressionType::Null {},
+    TemplateInterpolation => ast::ExpressionType::TemplateInterpolation { text: "temp".to_string() },
 };
 
 TemplateInterpolation: () = {
-    "${" ExprTerm "}",
-    "${" "~" ExprTerm "~" "}",
+    "${" Term "}",
+    "${" "~" Term "~" "}",
 };
 
 Conditional: () = {
-    ExprTerm "?" ExprTerm ":" ExprTerm,
+    Term "?" Term ":" Term,
 };
 
 // Precedence: highest to lowest.
@@ -83,8 +85,8 @@ Operation: () = {
 };
 
 OperationUnary: () = {
-    "-" ExprTerm,
-    "!" ExprTerm,
+    "-" Term,
+    "!" Term,
 };
 
 OperationBinary: () = {
@@ -125,28 +127,48 @@ OperationAddSub:() = {
 };
 
 OperationMulDiv: () = {
-    OperationMulDiv "*" ExprTerm,
-    OperationMulDiv "/" ExprTerm,
-    OperationMulDiv "%" ExprTerm,
-    ExprTerm,
+    OperationMulDiv "*" Term,
+    OperationMulDiv "/" Term,
+    OperationMulDiv "%" Term,
+    Term,
 };
 
-ExprTerm: () = {
-    LiteralValue,
+Term: () = {
+    Number,
+    NullValue,
+    BooleanValue,
     CollectionValue,
     // TemplateExpr,  // TODO: it can't parse newlines for some reason
     Identifiers,
     FunctionCall,
     ForExpr,
-    ExprTerm Splat,
+    Term Splat,
     "(" Expression ")",
 };
 
-LiteralValue:() = {
-    Number,
-    "true",
-    "false",
-    "null",
+NullValue: ast::Term = {
+    "null" => {
+        ast::Term {
+            node: ast::TermType::Null
+        }
+    },
+};
+
+BooleanValue: ast::Term = {
+    "true" => {
+        ast::Term {
+            node: ast::TermType::Boolean {
+                value: true
+            }
+        }
+    },
+    "false" => {
+        ast::Term {
+            node: ast::TermType::Boolean {
+                value: false
+            }
+        }
+    }
 };
 
 CollectionValue: () = {
@@ -217,7 +239,7 @@ IdentifierCommaList: () = {
 
 TemplateExpr: () = {
     // TODO: quotedTemplate (a double-quoted string with escaped quotes)
-    Heredoc Identifier "\n" IdentifierList "\n"
+    Heredoc Identifier "\n" Identifiers* "\n"
 };
 
 QuotedIdentifier: String = r#""[a-zA-Z_][a-zA-Z_0-9]*""# => <>.to_string();

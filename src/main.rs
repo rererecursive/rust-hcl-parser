@@ -184,6 +184,16 @@ e = f_
     assert!(hcl::HclParser::new().parse(text).is_ok());
 }
 
+#[test]
+fn test_booleans() {
+    let text = r#"
+val1 = true
+val2 = false
+val3 = null
+"#;
+    assert!(hcl::HclParser::new().parse(text).is_ok());
+}
+
 /****************************** MAIN ******************************/
 
 fn main() {
@@ -196,8 +206,21 @@ variable hello "ok" {
 
 ident hello "no" { srice = "qwerty" }
 
-attr = val
 "#;
-    hcl::HclParser::new().parse(text);
+    let program = hcl::HclParser::new().parse(text).unwrap();
+    println!("{:#?}", program);
+    // println!("{}", serde_json::to_string_pretty(&program).unwrap());
+
     println!("Hello, world!");
 }
+
+/*
+
+Leaf items:
+- LiteralValue
+- TemplateExpr
+- ExprTerm @ Identifiers
+
+I need an 'ExprTerm' AST enum.
+
+*/
