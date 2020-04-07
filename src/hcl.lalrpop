@@ -4,36 +4,17 @@ use crate::ast;
 grammar;
 
 pub Hcl: () = {
-    Body => println!("Body: {:#?}", <>),
+    Body* => println!("Body: {:#?}", <>),
 };
 
-Body: Vec<ast::Statement> = {
-    <b:BlockList> => b,
-    <a:AttributeList> => a ,
-};
-
-BlockList: Vec<ast::Statement> = {
-    <mut bl:BlockList> <b:Block> => {
-        bl.push(b);
-        bl
-    },
-    <b:Block> => {
-        vec![b]
-    },
-};
-
-AttributeList: Vec<ast::Statement> = {
-    <mut al:AttributeList> <a:Attribute> => {
-        al.push(a);
-        al
-    },
-    <a:Attribute> => {
-        vec![a]
-    },
+Body: ast::Statement = {
+    <b:Block> => b,
+    <a:Attribute> => a,
 };
 
 Attribute: ast::Statement = {
     <i:Identifier> "=" Expression => {
+        println!("Attr: {:?}", i);
         ast::Statement {
             node: ast::StatementType::Attribute {
                 identifier: i
@@ -43,7 +24,7 @@ Attribute: ast::Statement = {
 };
 
 Block: ast::Statement = {
-    <i:Identifiers+> "{" <body:Body> "}" => {
+    <i:Identifiers+> "{" <body:Body+> "}" => {
         let mut blocks = vec![];
         let mut attrs = vec![];
 
@@ -155,7 +136,7 @@ ExprTerm: () = {
     LiteralValue,
     CollectionValue,
     // TemplateExpr,  // TODO: it can't parse newlines for some reason
-    VariableExpr,
+    Identifiers,
     FunctionCall,
     ForExpr,
     ExprTerm Splat,
@@ -233,10 +214,6 @@ ForCond: () = {
 IdentifierCommaList: () = {
     Identifier,
     Identifier "," IdentifierCommaList
-};
-
-VariableExpr: () = {
-    Identifiers,
 };
 
 TemplateExpr: () = {

@@ -14,7 +14,7 @@ variable hello "ok" {
 }
 
 #[test]
-fn test_multiple_attributes() {
+fn test_block_multiple_attributes() {
     let text = r#"
 variable hello "ok" {
   type = string
@@ -121,11 +121,59 @@ fn test_simple() {
     let text = r#"
 variable "ok" {
   hi = yes
+  bye = no
 }
 "#;
     assert!(hcl::HclParser::new().parse(text).is_ok());
 }
 
+#[test]
+fn test_nested_block() {
+    let text = r#"
+inside "inner" {
+    outside "outer" {
+        key = value
+    }
+}
+"#;
+    assert!(hcl::HclParser::new().parse(text).is_ok());
+}
+
+#[test]
+fn test_multiple_blocks() {
+    let text = r#"
+inside "inner" {
+    one = two
+}
+
+outside "outer" {
+    three = four
+}
+"#;
+    assert!(hcl::HclParser::new().parse(text).is_ok());
+}
+
+#[test]
+fn test_multiple_attributes() {
+    let text = r#"
+one = two
+three = four
+"#;
+    assert!(hcl::HclParser::new().parse(text).is_ok());
+}
+
+#[test]
+fn test_multiple_bodies() {
+    let text = r#"
+inside "inner" {
+    hello = goodbye
+}
+key = value
+"#;
+    assert!(hcl::HclParser::new().parse(text).is_ok());
+}
+
+/****************************** MAIN ******************************/
 
 fn main() {
     let text = r#"
@@ -135,17 +183,9 @@ variable hello "ok" {
   thrice = rotate(3, {apple = green}, translate(1))
 }
 
-data hello "no" {
-  frice = "yum"
-}
-
 ident hello "no" { srice = "qwerty" }
 
-inside "inner" {
-    outside "outer" {
-        key = "value"
-    }
-}
+attr = val
 "#;
     hcl::HclParser::new().parse(text);
     println!("Hello, world!");
