@@ -4,15 +4,15 @@ use crate::ast;
 grammar;
 
 pub Hcl: () = {
-    Body,
+    Body => println!("Body: {:#?}", <>),
 };
 
-Body: () = {
-    <b:BlockList> => { println!("Blocklist: {:#?}", b) },
-    AttributeList,
+Body: Vec<ast::Statement> = {
+    <b:BlockList> => b,
+    <a:AttributeList> => a ,
 };
 
-BlockList: Vec<ast::Block> = {
+BlockList: Vec<ast::Statement> = {
     <mut bl:BlockList> <b:Block> => {
         bl.push(b);
         bl
@@ -22,19 +22,44 @@ BlockList: Vec<ast::Block> = {
     },
 };
 
-AttributeList: () = {
-    AttributeList Attribute,
-    Attribute,
+AttributeList: Vec<ast::Statement> = {
+    <mut al:AttributeList> <a:Attribute> => {
+        al.push(a);
+        al
+    },
+    <a:Attribute> => {
+        vec![a]
+    },
 };
 
-Attribute: () = {
-    Identifier "=" Expression,
+Attribute: ast::Statement = {
+    <i:Identifier> "=" Expression => {
+        ast::Statement {
+            node: ast::StatementType::Attribute {
+                identifier: i
+            }
+        }
+    }
 };
 
-Block: ast::Block = {
-    <i:Identifiers+> "{" Body "}" => {
-        ast::Block {
-            block_identifiers: i
+Block: ast::Statement = {
+    <i:Identifiers+> "{" <body:Body> "}" => {
+        let mut blocks = vec![];
+        let mut attrs = vec![];
+
+        for stmt in body {
+            match stmt.node {
+                ast::StatementType::Block { .. } => blocks.push(stmt),
+                ast::StatementType::Attribute { .. } => attrs.push(stmt),
+            }
+        }
+
+        ast::Statement {
+            node: ast::StatementType::Block {
+                block_identifiers: i,
+                attributes: attrs,
+                child_blocks: blocks,
+            }
         }
     },
 };

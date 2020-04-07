@@ -139,8 +139,12 @@ data hello "no" {
   frice = "yum"
 }
 
-ident hello "no" {
-  frice = "yum"
+ident hello "no" { srice = "qwerty" }
+
+inside "inner" {
+    outside "outer" {
+        key = "value"
+    }
 }
 "#;
     hcl::HclParser::new().parse(text);
