@@ -262,16 +262,42 @@ ForExpr: () = {
     ForObjectExpr,
 };
 
-ForTupleExpr: () = {
-    "[" ForIntro Expression ("if" Expression)? "]"
+ForTupleExpr: ast::Term = {
+    "[" <f:ForIntro> <e:Expression> <i:("if" Expression)?> "]" => {
+        let mut expr = None;
+
+        if i.is_some() {
+            expr = Some(i.unwrap().1)
+        }
+
+        ast::Term {
+            node: ast::TermType::ForTuple {
+                intro: f,
+                expression: e,
+                if_expression: expr,
+            }
+        }
+    }
 };
 
 ForObjectExpr: () = {
     "{" ForIntro Expression "=>" Expression "..."? ("if" Expression)? "}"
 };
 
-ForIntro: () = {
-    "for" Identifier ("," Identifier)* "in" Expression ":"
+ForIntro: ast::For = {
+    // for key, val in items():
+    "for" <i:Identifier> <i2:("," Identifier)*> "in" <e:Expression> ":" => {
+        let mut ids: Vec<String> = vec![i];
+
+        ids.extend(i2.into_iter().map(|e| e.1).collect::<Vec<String>>());
+
+        ast::For {
+            node: ast::ForType::Intro {
+                identifiers: ids,
+                expression: e,
+            }
+        }
+    }
 };
 
 TemplateExpr: () = {

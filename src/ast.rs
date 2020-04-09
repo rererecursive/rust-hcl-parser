@@ -53,6 +53,24 @@ pub enum TermType {
         name: String,
         expressions: Vec<Expression>,
     },
+
+    ForTuple {
+        intro: For,
+        expression: Expression,
+        if_expression: Option<Expression>,
+    },
+
+    ForObject {
+        intro: For,
+    },
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum ForType {
+    Intro {
+        identifiers: Vec<String>,
+        expression: Expression,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -63,3 +81,4 @@ pub struct Located<T> {
 pub type Statement = Located<StatementType>;
 pub type Expression = Located<ExpressionType>;
 pub type Term = Located<TermType>;
+pub type For = Located<ForType>;
