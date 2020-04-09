@@ -62,6 +62,9 @@ pub enum TermType {
 
     ForObject {
         intro: For,
+        key_expression: Expression,
+        value_expression: Expression,
+        if_expression: Option<Expression>,
     },
 }
 

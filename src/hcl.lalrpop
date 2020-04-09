@@ -257,7 +257,7 @@ FunctionCall: ast::Term = {
     }
 };
 
-ForExpr: () = {
+ForExpr: ast::Term = {
     ForTupleExpr,
     ForObjectExpr,
 };
@@ -280,8 +280,23 @@ ForTupleExpr: ast::Term = {
     }
 };
 
-ForObjectExpr: () = {
-    "{" ForIntro Expression "=>" Expression "..."? ("if" Expression)? "}"
+ForObjectExpr: ast::Term = {
+    "{" <f:ForIntro> <e1:Expression> "=>" <e2:Expression> "..."? <i:("if" Expression)?> "}" => {
+        let mut expr = None;
+
+        if i.is_some() {
+            expr = Some(i.unwrap().1)
+        }
+
+        ast::Term {
+            node: ast::TermType::ForObject {
+                intro: f,
+                key_expression: e1,
+                value_expression: e2,
+                if_expression: expr,
+            }
+        }
+    }
 };
 
 ForIntro: ast::For = {
