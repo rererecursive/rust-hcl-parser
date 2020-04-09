@@ -66,6 +66,10 @@ pub enum TermType {
         value_expression: Expression,
         if_expression: Option<Expression>,
     },
+
+    Splat {
+        items: Vec<String>,
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]

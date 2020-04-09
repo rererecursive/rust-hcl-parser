@@ -230,11 +230,39 @@ ObjectCommaList: () = {
 };
 
 
-Splat: () = {
-    "." "*",
-    "." Identifier,     // GetAttr
-    "[" "*" "]",
-    "[" Expression "]", // Index
+Splat: ast::Term = {
+    "." "*" => {
+        ast::Term {
+            node: ast::TermType::Splat {
+                items: vec![
+                    ".".to_string(),
+                    "*".to_string()
+                ]
+            }
+        }
+    },
+    "." <i:Identifier> => {
+        ast::Term {
+            node: ast::TermType::Splat {
+                items: vec![
+                    ".".to_string(),
+                    i
+                ]
+            }
+        }
+    },
+    "[" "*" "]" => {
+        ast::Term {
+            node: ast::TermType::Splat {
+                items: vec![
+                    "[".to_string(),
+                    "*".to_string(),
+                    "]".to_string()
+                ]
+            }
+        }
+    },
+    // "[" Expression "]", // Index. Is this the same as a Tuple?
 };
 
 FunctionCall: ast::Term = {
