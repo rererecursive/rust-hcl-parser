@@ -21,9 +21,7 @@ Attribute: ast::Statement = {
         ast::Statement {
             node: ast::StatementType::Attribute {
                 identifier: i,
-                expression: ast::Expression {
-                    node: e,
-                }
+                expression: e
             }
         }
     }
@@ -56,10 +54,22 @@ Identifiers: String = {
     QuotedIdentifier,
 };
 
-Expression: ast::ExpressionType = {
-    Operation => ast::ExpressionType::Null {},
-    Conditional => ast::ExpressionType::Null {},
-    TemplateInterpolation => ast::ExpressionType::TemplateInterpolation { text: "temp".to_string() },
+Expression: ast::Expression = {
+    Operation => {
+        ast::Expression {
+            node: ast::ExpressionType::Null
+        }
+    },
+    Conditional => {
+        ast::Expression {
+            node: ast::ExpressionType::Null
+        }
+    },
+    TemplateInterpolation => {
+        ast::Expression {
+            node: ast::ExpressionType::TemplateInterpolation { text: "temp".to_string() },
+        }
+    }
 };
 
 TemplateInterpolation: () = {
@@ -181,23 +191,37 @@ BooleanValue: ast::Term = {
     }
 };
 
-CollectionValue: () = {
+CollectionValue: ast::Term = {
     Tuple,
     Object,
 };
 
-Tuple: () = {
-    "[" ExpressionCommaList? "]",
+Tuple: ast::Term = {
+    "[" <e1:Expression?> <e2:("," Expression)*> "]" => {
+        let mut exprs = Vec::new();
+
+        if e1.is_some() {
+            exprs.push(e1.unwrap());
+        }
+
+        for expr in e2 {
+            exprs.push(expr.1);
+        }
+
+        ast::Term {
+            node: ast::TermType::Tuple {
+                expressions: exprs,
+            }
+        }
+    }
 };
 
-ExpressionCommaList: () = {
-
-    Expression "," ExpressionCommaList,
-    Expression,
-};
-
-Object: () = {
-    "{" ObjectCommaList? "}",
+Object: ast::Term = {
+    "{" ObjectCommaList? "}" => {
+        ast::Term {
+            node: ast::TermType::Null
+        }
+    }
 };
 
 ObjectCommaList: () = {
@@ -213,12 +237,24 @@ Splat: () = {
     "[" Expression "]", // Index
 };
 
-FunctionCall: () = {
-    Identifier "(" Arguments? ")"
-};
+FunctionCall: ast::Term = {
+    <i:Identifier> "(" <e1:Expression?> <e2:("," Expression)*> ")" => {
+        let mut exprs = Vec::new();
 
-Arguments: () = {
-    ExpressionCommaList
+        if e1.is_some() {
+            exprs.push(e1.unwrap());
+        }
+        for expr in e2 {
+            exprs.push(expr.1);
+        }
+
+        ast::Term {
+            node: ast::TermType::FunctionCall {
+                name: i,
+                expressions: exprs,
+            }
+        }
+    }
 };
 
 ForExpr: () = {

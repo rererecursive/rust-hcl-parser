@@ -206,6 +206,7 @@ variable hello "ok" {
 
 ident hello "no" { srice = "qwerty" }
 num = 5
+my_tup = [item1, item2]
 "#;
     let program = hcl::HclParser::new().parse(text).unwrap();
     println!("{:#?}", program);

@@ -22,7 +22,7 @@ pub enum StatementType {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum ExpressionType {
-    Null {},
+    Null, // Temp.
 
     Text {
         text: String,
@@ -43,7 +43,16 @@ pub enum TermType {
 
     Number {
         value: u32,
-    }
+    },
+
+    Tuple {
+        expressions: Vec<Expression>,
+    },
+
+    FunctionCall {
+        name: String,
+        expressions: Vec<Expression>,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
