@@ -263,24 +263,15 @@ ForExpr: () = {
 };
 
 ForTupleExpr: () = {
-    "[" ForIntro Expression ForCond? "]"
+    "[" ForIntro Expression ("if" Expression)? "]"
 };
 
 ForObjectExpr: () = {
-    "{" ForIntro Expression "=>" Expression "..."? ForCond? "}"
+    "{" ForIntro Expression "=>" Expression "..."? ("if" Expression)? "}"
 };
 
 ForIntro: () = {
-    "for" IdentifierCommaList "in" Expression ":"
-};
-
-ForCond: () = {
-    "if" Expression
-};
-
-IdentifierCommaList: () = {
-    Identifier,
-    Identifier "," IdentifierCommaList
+    "for" Identifier ("," Identifier)* "in" Expression ":"
 };
 
 TemplateExpr: () = {
