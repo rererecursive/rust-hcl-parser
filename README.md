@@ -1,0 +1,3 @@
+- [x] Parse HCL
+- [ ] Generate AST
+- [ ] Output as JSON
